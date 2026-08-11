@@ -7,6 +7,7 @@ export PREFIX="s"
 export TYPE="stable"
 export BUILD_TYPE="Stable"
 #export TGTOKEN=bot_token
+#export CHAT_ID=chat_id
 
 # Начало отсчета времени выполнения скрипта
 start_time=$(date +%s)
@@ -79,8 +80,8 @@ fi
 export IMGPATH="$PERF_DIR/Image"
 export DTBPATH="$PERF_DIR/dtb"
 export DTBOPATH="$PERF_DIR/dtbo.img"
-export KBUILD_BUILD_USER="olzhas"
-export KBUILD_BUILD_HOST="ubuntu"
+export KBUILD_BUILD_USER="veedz"
+export KBUILD_BUILD_HOST="@github.com"
 
 # Запись времени сборки
 PERF_BUILD_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
@@ -89,9 +90,59 @@ PERF_BUILD_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
 output_dir=out
 
 # Конфигурация ядра
-make O="$output_dir" \
+ make O="$output_dir" \
             vendor/${DEVICE}_defconfig
-
+ for config in \
+    'CONFIG_CFG80211=y' \
+    'CONFIG_MAC80211=y' \
+    'CONFIG_MAC80211_RC_MINSTREL_VHT=y' \
+    'CONFIG_MAC80211_MESH=y' \
+    'CONFIG_WLAN=y' \
+    'CONFIG_ATH_COMMON=m' \
+    'CONFIG_ATH9K_HW=m' \
+    'CONFIG_ATH9K_COMMON=m' \
+    'CONFIG_ATH5K=m' \
+    'CONFIG_ATH9K=m' \
+    'CONFIG_ATH9K_AHB=y' \
+    'CONFIG_ATH9K_DYNACK=y' \
+    'CONFIG_ATH9K_WOW=y' \
+    'CONFIG_ATH9K_CHANNEL_CONTEXT=y' \
+    'CONFIG_ATH9K_HTC=m' \
+    'CONFIG_ATH9K_HWRNG=y' \
+    'CONFIG_CARL9170=m' \
+    'CONFIG_CARL9170_HWRNG=y' \
+    'CONFIG_ATH6KL=m' \
+    'CONFIG_ATH6KL_SDIO=m' \
+    'CONFIG_ATH6KL_USB=m' \
+    'CONFIG_AR5523=m' \
+    'CONFIG_ATH10K=m' \
+    'CONFIG_ATH10K_PCI=m' \
+    'CONFIG_ATH10K_AHB=y' \
+    'CONFIG_ATH10K_SDIO=m' \
+    'CONFIG_ATH10K_USB=m' \
+    'CONFIG_ATH10K_SNOC=m' \
+    'CONFIG_WCN36XX=m' \
+    'CONFIG_WCN36XX_DEBUGFS=y' \
+    'CONFIG_MT7601U=m' \
+    'CONFIG_MT76x0U=m' \
+    'CONFIG_MT76x2E=m' \
+    'CONFIG_MT76x2U=m' \
+    'CONFIG_RTL8180=m' \
+    'CONFIG_RTL8187=m' \
+    'CONFIG_RTL8XXXU=m' \
+    'CONFIG_RTL8XXXU_UNTESTED=y' \
+    'CONFIG_MODULE_FORCE_LOAD=y' \
+    'CONFIG_MODULE_UNLOAD=y' \
+    'CONFIG_MODULE_FORCE_UNLOAD=y'
+ do
+    if grep -qx "$config" "$output_dir/.config"; then
+        echo "[OK] $config"
+    else
+        echo "[ERROR] Missing: $config"
+        exit 1
+    fi
+done
+    
     # Компиляция ядра
     make -j $(nproc) \
                 O="$output_dir" \
@@ -108,6 +159,16 @@ make O="$output_dir" \
                 LLVM_IAS=1 \
                 V=$VERBOSE 2>&1 | tee build.log
                 
+# Copy kernel modules (.ko)
+MODULES_DIR="$PERF_DIR/modules/vendor/lib/modules"
+
+mkdir -p "$MODULES_DIR"
+
+find "$output_dir" -type f -name "*.ko" \
+    -exec cp -f {} "$MODULES_DIR/" \;
+
+echo "Kernel modules copied:"
+find "$MODULES_DIR" -type f -name "*.ko"
 
 # Предполагается, что переменная DTS установлена ранее в скрипте
 find $DTS -name '*.dtb' -exec cat {} + > $DTBPATH
@@ -126,13 +187,11 @@ if grep -q -E "Ошибка 2|Error 2" build.log; then
     echo "Ошибка: Сборка завершилась с ошибкой"
 
     curl -s -X POST https://api.telegram.org/bot$TGTOKEN/sendMessage \
-    -d chat_id="@olzhaskernel" \
-    -d text="Ошибка в компиляции!" \
-    -d message_thread_id="2"
+    -d chat_id="$CHAT_ID" \
+    -d text="Ошибка в компиляции!"
 
-    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=@olzhaskernel" \
-    -F document=@"./build.log" \
-    -F message_thread_id="2"
+    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=$CHAT_ID" \
+    -F document=@"./build.log"
 else
     echo "Общее время выполнения: $elapsed_time секунд"
     # Перемещение в каталог Perf+ и создание архива
@@ -140,14 +199,12 @@ else
     7z a -mx9 perf-$DEVICE-$PERF_BUILD_DATE.zip * -x!*.zip
     
     curl -s -X POST https://api.telegram.org/bot$TGTOKEN/sendMessage \
-    -d chat_id="@olzhaskernel" \
-    -d text="Компиляция завершилась успешно! Время выполнения: $elapsed_time секунд" \
-    -d message_thread_id="2"
+    -d chat_id="$CHAT_ID" \
+    -d text="Компиляция завершилась успешно! Время выполнения: $elapsed_time секунд"
 
-    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=@olzhaskernel" \
+    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=$CHAT_ID" \
     -F document=@"./perf-$DEVICE-$PERF_BUILD_DATE.zip" \
-    -F caption="perf ${VERSION}${PREFIX} (${BUILD_TYPE}) branch: ${BRANCH}" \
-    -F message_thread_id="2"
+    -F caption="perf ${VERSION}${PREFIX} (${BUILD_TYPE}) branch: ${BRANCH}"
 
     rm -rf perf-$DEVICE-$PERF_BUILD_DATE.zip
 fi
