@@ -81,7 +81,7 @@ export IMGPATH="$PERF_DIR/Image"
 export DTBPATH="$PERF_DIR/dtb"
 export DTBOPATH="$PERF_DIR/dtbo.img"
 export KBUILD_BUILD_USER="veedz"
-export KBUILD_BUILD_HOST="@github.com"
+export KBUILD_BUILD_HOST="github.com"
 
 # Запись времени сборки
 PERF_BUILD_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
@@ -133,7 +133,8 @@ output_dir=out
     'CONFIG_RTL8XXXU_UNTESTED=y' \
     'CONFIG_MODULE_FORCE_LOAD=y' \
     'CONFIG_MODULE_UNLOAD=y' \
-    'CONFIG_MODULE_FORCE_UNLOAD=y'
+    'CONFIG_MODULE_FORCE_UNLOAD=y' \
+    'CONFIG_NOMOUNT=y'
  do
     if grep -qx "$config" "$output_dir/.config"; then
         echo "[OK] $config"
