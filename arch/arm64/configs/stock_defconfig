@@ -6731,3 +6731,7 @@ CONFIG_RTL8XXXU_UNTESTED=y
 CONFIG_BBG=y
 CONFIG_LSM="lockdown,yama,loadpin,safesetid,integrity,selinux,smack,tomoyo,apparmor,bpf,baseband_guard"
 CONFIG_NOMOUNT=y
+
+# KernelSU
+CONFIG_KSU=y
+CONFIG_KSU_MANUAL_HOOK=y

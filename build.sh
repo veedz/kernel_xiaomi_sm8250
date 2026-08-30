@@ -90,8 +90,14 @@ PERF_BUILD_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
 output_dir=out
 
 # Конфигурация ядра
- make O="$output_dir" \
-            vendor/${DEVICE}_defconfig
+# make O="$output_dir" \
+#            vendor/${DEVICE}_defconfig
+# Конфигурация ядра
+make O="$output_dir" \
+            vendor/kona-perf_defconfig \
+            vendor/xiaomi/sm8250-common.config \
+            vendor/xiaomi/munch.config
+
  for config in \
     'CONFIG_CFG80211=y' \
     'CONFIG_MAC80211=y' \
