@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Clone Kernel Source
         run: |
-          git clone https://github.com/Olzhas0986-AOSP/kernel_xiaomi_sm8250 -b ${{ github.event.inputs.branch }} ${{ github.workspace }}/kernel_xiaomi_sm8250 --depth=1
+          git clone https://github.com/veedz/kernel_xiaomi_sm8250 -b ${{ github.event.inputs.branch }} ${{ github.workspace }}/kernel_xiaomi_sm8250 --depth=1
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -38,4 +38,5 @@ jobs:
           bash build.sh
         env:
           TGTOKEN: ${{ secrets.TGTOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
           
