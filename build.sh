@@ -7,6 +7,7 @@ export PREFIX="s"
 export TYPE="stable"
 export BUILD_TYPE="Stable"
 #export TGTOKEN=bot_token
+#export CHAT_ID=chat_id
 
 # Начало отсчета времени выполнения скрипта
 start_time=$(date +%s)
@@ -79,8 +80,8 @@ fi
 export IMGPATH="$PERF_DIR/Image"
 export DTBPATH="$PERF_DIR/dtb"
 export DTBOPATH="$PERF_DIR/dtbo.img"
-export KBUILD_BUILD_USER="olzhas"
-export KBUILD_BUILD_HOST="ubuntu"
+export KBUILD_BUILD_USER="veedz"
+export KBUILD_BUILD_HOST="github.com"
 
 # Запись времени сборки
 PERF_BUILD_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
@@ -126,13 +127,11 @@ if grep -q -E "Ошибка 2|Error 2" build.log; then
     echo "Ошибка: Сборка завершилась с ошибкой"
 
     curl -s -X POST https://api.telegram.org/bot$TGTOKEN/sendMessage \
-    -d chat_id="@olzhaskernel" \
-    -d text="Ошибка в компиляции!" \
-    -d message_thread_id="2"
+    -d chat_id="$CHAT_ID" \
+    -d text="Ошибка в компиляции!"
 
-    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=@olzhaskernel" \
-    -F document=@"./build.log" \
-    -F message_thread_id="2"
+    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=$CHAT_ID" \
+    -F document=@"./build.log"
 else
     echo "Общее время выполнения: $elapsed_time секунд"
     # Перемещение в каталог Perf+ и создание архива
@@ -140,14 +139,12 @@ else
     7z a -mx9 perf-$DEVICE-$PERF_BUILD_DATE.zip * -x!*.zip
     
     curl -s -X POST https://api.telegram.org/bot$TGTOKEN/sendMessage \
-    -d chat_id="@olzhaskernel" \
-    -d text="Компиляция завершилась успешно! Время выполнения: $elapsed_time секунд" \
-    -d message_thread_id="2"
+    -d chat_id="$CHAT_ID" \
+    -d text="Компиляция завершилась успешно! Время выполнения: $elapsed_time секунд"
 
-    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=@olzhaskernel" \
+    curl -s -X POST "https://api.telegram.org/bot$TGTOKEN/sendDocument?chat_id=$CHAT_ID" \
     -F document=@"./perf-$DEVICE-$PERF_BUILD_DATE.zip" \
-    -F caption="perf ${VERSION}${PREFIX} (${BUILD_TYPE}) branch: ${BRANCH}" \
-    -F message_thread_id="2"
+    -F caption="perf ${VERSION}${PREFIX} (${BUILD_TYPE}) branch: ${BRANCH}"
 
     rm -rf perf-$DEVICE-$PERF_BUILD_DATE.zip
 fi
