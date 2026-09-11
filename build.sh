@@ -61,7 +61,7 @@ if [ ! -d "$PERF_DIR" ]; then
     
     # Проверка и клонирование Anykernel, если Perf+ не существует
     if [ ! -d "$PERF_DIR/Anykernel" ]; then
-        git clone https://github.com/olzhas0986/Anykernel3.git -b perf "$PERF_DIR/Anykernel"
+        git clone https://github.com/olzhas0986/Anykernel3.git -b main "$PERF_DIR/Anykernel"
         
         # Перемещение всех файлов из Anykernel в Perf+
         mv "$PERF_DIR/Anykernel/"* "$PERF_DIR/"
