@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          cd $PWD
+          cd android_kernel_xiaomi_munch
           git submodule update --init
           bash build.sh
         env:
