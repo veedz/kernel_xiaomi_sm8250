@@ -1,0 +1,41 @@
+name: Perf+ Kernel Builder 2
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Choose branch'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Clone Kernel Source
+        run: |
+          git clone https://github.com/munch-devs/android_kernel_xiaomi_munch -b ${{ github.event.inputs.branch }} ${{ github.workspace }}/android_kernel_xiaomi_munch --depth=1
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.ccache
+          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.ref_name }}-
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flex bc bison gcc gcc-aarch64-linux-gnu ccache p7zip-full lld cpio python-is-python3 zstd wget curl
+
+      - name: Build Kernel
+        run: |
+          cd android_kernel_xiaomi_munch
+          git submodule update --init
+          bash build.sh
+        env:
+          TGTOKEN: ${{ secrets.TGTOKEN }}
+          
