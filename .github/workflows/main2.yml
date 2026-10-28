@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Clone Kernel Source
         run: |
-          git clone https://github.com/munch-devs/android_kernel_xiaomi_munch -b ${{ github.event.inputs.branch }} android_kernel_xiaomi_munch --depth=1
-          git clone https://github.com/nunkki/Anykernel3-Munch -b main Anykernel3 --depth=1
+          git clone https://github.com/munch-devs/android_kernel_xiaomi_munch -b ${{ github.event.inputs.branch }} $PWD --depth=1
+          git clone https://github.com/nunkki/Anykernel3-Munch -b main $PWD/../Anykernel3 --depth=1
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -34,6 +34,7 @@ jobs:
 
       - name: Build Kernel
         run: |
+          cd $PWD
           git submodule update --init
           bash build.sh
         env:
